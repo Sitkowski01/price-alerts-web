@@ -65,6 +65,20 @@ npm run typecheck  # vue-tsc bez emitowania
 | `tests/alerts-store.test.ts` | store Pinii przez prawdziwą ścieżkę store → klient → reguły: pobieranie, gettery, **powrót na pierwszą stronę przy zmianie filtra**, aktualizacja w miejscu bez przeładowania listy, błąd sieci zostawiający czytelny komunikat |
 | `tests/components.test.ts` | komponenty przez `@vue/test-utils`: walidacja formularza, emitowane zdarzenia, podgląd reguły reagujący na kierunek, czyszczenie pól po zapisie, blokada przycisku w trakcie zapisu |
 
+Do tego **7 testów w prawdziwej przeglądarce** (Playwright, `npm run test:e2e`):
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Widoki są ładowane leniwie, więc testy jednostkowe nigdy ich nie renderują —
+błąd w szablonie albo w imporcie przeszedłby niezauważony. Testy w przeglądarce
+przechodzą całą aplikację: lista, zakładanie alertu z podglądem reguły, wysyłka
+notowania kończąca się uruchomieniem, szczegóły z historią, filtrowanie, ustawienia
+odsłaniające pola dopiero po wyborze prawdziwego API oraz strona 404.
+**Każdy błąd w konsoli przeglądarki oblewa test.**
+
 Testy store'a celowo idą przez `DemoAlertsApi`, a nie przez atrapę każdej metody —
 sprawdzają realną ścieżkę danych, a nie to, czy mock został wywołany.
 

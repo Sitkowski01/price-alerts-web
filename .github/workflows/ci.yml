@@ -33,3 +33,17 @@ jobs:
 
       - name: Build produkcyjny
         run: npm run build
+
+      - name: Przeglądarka dla Playwrighta
+        run: npx playwright install --with-deps chromium
+
+      - name: Testy w przeglądarce
+        run: npm run test:e2e
+
+      - name: Raport z testów w przeglądarce
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

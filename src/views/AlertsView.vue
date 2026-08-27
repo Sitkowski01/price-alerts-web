@@ -10,13 +10,33 @@ import EmptyState from "../components/EmptyState.vue";
 import ErrorNote from "../components/ErrorNote.vue";
 import FilterBar from "../components/FilterBar.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
+import Sparkline from "../components/Sparkline.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import { useAlertsStore } from "../stores/alerts";
+import { useMarketStore } from "../stores/market";
 import { useToastsStore } from "../stores/toasts";
 import type { Alert, AlertCreate } from "../api/types";
 
 const store = useAlertsStore();
 const toasty = useToastsStore();
+const market = useMarketStore();
+
+// Notowania po tickerze — mapa zamiast szukania w tablicy przy każdym wierszu.
+const rynek = computed(() =>
+  Object.fromEntries(market.notowania.map((n) => [n.ticker, n])),
+);
+
+/**
+ * Ile procent brakuje do progu. Liczba ujemna znaczy, że cena jest już
+ * po właściwej stronie — czyli alert odpali przy najbliższym notowaniu.
+ */
+function dystans(ticker: string, prog: string, kierunek: "above" | "below"): number | null {
+  const notowanie = rynek.value[ticker];
+  if (!notowanie) return null;
+  const cel = Number(prog);
+  const roznica = kierunek === "above" ? cel - notowanie.cena : notowanie.cena - cel;
+  return (roznica / notowanie.cena) * 100;
+}
 
 // `storeToRefs` rozpakowuje stan i gettery, ZACHOWUJĄC reaktywność.
 // Zwykłe `const { pozycje } = store` zerwałoby powiązanie i lista przestałaby się odświeżać.
@@ -110,6 +130,7 @@ function sformatuj(kwota: string): string {
             <th>Instrument</th>
             <th>Reguła</th>
             <th>Status</th>
+            <th>Rynek</th>
             <th>Notatka</th>
             <th class="do-prawej">Akcje</th>
           </tr>
@@ -131,6 +152,31 @@ function sformatuj(kwota: string): string {
               </span>
             </td>
             <td><StatusBadge :status="alert.status" /></td>
+            <td>
+              <div v-if="rynek[alert.ticker]" class="rynek">
+                <Sparkline
+                  :wartosci="rynek[alert.ticker].historia"
+                  :prog="Number(alert.threshold)"
+                  :szerokosc="70"
+                  :wysokosc="22"
+                />
+                <div class="rynek__liczby">
+                  <span class="rynek__cena">{{ rynek[alert.ticker].cena.toFixed(2) }}</span>
+                  <span
+                    v-if="alert.status === 'armed' && dystans(alert.ticker, alert.threshold, alert.direction) !== null"
+                    class="rynek__dystans"
+                    :class="dystans(alert.ticker, alert.threshold, alert.direction)! <= 0 ? 'rynek__dystans--tuz' : ''"
+                  >
+                    {{
+                      dystans(alert.ticker, alert.threshold, alert.direction)! <= 0
+                        ? "za progiem"
+                        : dystans(alert.ticker, alert.threshold, alert.direction)!.toFixed(1) + "% do progu"
+                    }}
+                  </span>
+                </div>
+              </div>
+              <span v-else class="notatka">—</span>
+            </td>
             <td class="notatka">{{ alert.note ?? "—" }}</td>
             <td class="do-prawej">
               <div class="akcje-wiersza">

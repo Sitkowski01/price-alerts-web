@@ -19,6 +19,37 @@ w FastAPI z PostgreSQL, skonteneryzowanym i uruchomionym na Kubernetesie.
 - **Dwa źródła danych** — prawdziwe API albo tryb demo w pamięci przeglądarki
 - Obsługa błędów rozróżniająca brak klucza (401) od niedostępnego backendu
 
+## Symulowany rynek
+
+Aplikacja nie czeka, aż ktoś ręcznie wpisze notowanie. Po wejściu rusza **symulator
+rynku**: dziesięć spółek z GPW, tik co 1,2 s, błądzenie losowe z lekkim ciągnięciem
+do ceny otwarcia — bez tego ciągnięcia szereg po kilku minutach ucieka w kosmos
+i wykres przestaje cokolwiek znaczyć.
+
+Co z tego wynika:
+
+- **Taśma notowań** u góry, przewijana jak na [sitekmikolaj.pl](https://sitekmikolaj.pl)
+  (ten sam idiom `marquee`), z ceną, zmianą procentową i wykresem iskrowym.
+  Zatrzymuje się pod kursorem i przy `prefers-reduced-motion`.
+- **Kolumna „Rynek"** w tabeli alertów: wykres iskrowy z **przerywaną linią progu**
+  i informacją, ile procent brakuje do jego przebicia. Widać na pierwszy rzut oka,
+  który alert zaraz strzeli.
+- **Alerty odpalają się same.** Symulator wysyła notowania tą samą drogą co człowiek —
+  przez `POST /v1/quotes`. Zakładasz alert i po chwili widzisz powiadomienie,
+  bez klikania czegokolwiek.
+
+Dwie decyzje, o które warto zapytać:
+
+- **Notowania lecą tylko dla instrumentów z uzbrojonym alertem.** Reszta rusza się
+  wyłącznie na wykresie. Bez tego symulator generowałby dziesięć zapytań na tik,
+  z czego dziewięć bez żadnego skutku.
+- **Autostart tylko w trybie demo.** W trybie HTTP symulacja zalewałaby czyjś backend
+  zapytaniami bez pytania o zgodę — tam włącza się ją ręcznie przełącznikiem na taśmie.
+
+Wykresy iskrowe to **czysty SVG liczony w `computed`**, bez żadnej biblioteki
+wykresów (`src/components/Sparkline.vue`). Skala obejmuje serię i próg naraz,
+inaczej linia progu wyjeżdżałaby poza ramkę.
+
 ## Tryb demo
 
 Publiczna wersja domyślnie **nie potrzebuje backendu**. `DemoAlertsApi` trzyma dane
@@ -88,7 +119,7 @@ npm run test:watch
 npm run typecheck  # vue-tsc bez emitowania
 ```
 
-**41 testów w trzech plikach:**
+**48 testów w trzech plikach:**
 
 | Plik | Co sprawdza |
 |---|---|
@@ -96,7 +127,7 @@ npm run typecheck  # vue-tsc bez emitowania
 | `tests/alerts-store.test.ts` | store Pinii przez prawdziwą ścieżkę store → klient → reguły: pobieranie, gettery, **powrót na pierwszą stronę przy zmianie filtra**, aktualizacja w miejscu bez przeładowania listy, błąd sieci zostawiający czytelny komunikat |
 | `tests/components.test.ts` | komponenty przez `@vue/test-utils`: walidacja formularza, emitowane zdarzenia, podgląd reguły reagujący na kierunek, czyszczenie pól po zapisie, blokada przycisku w trakcie zapisu |
 
-Do tego **11 testów w prawdziwej przeglądarce** (Playwright, `npm run test:e2e`):
+Do tego **14 testów w prawdziwej przeglądarce** (Playwright, `npm run test:e2e`):
 
 ```bash
 npx playwright install chromium

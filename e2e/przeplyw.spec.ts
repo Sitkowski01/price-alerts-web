@@ -16,6 +16,17 @@ function wierszAlertu(page: Page, ticker: string) {
   return page.locator("table").getByRole("link", { name: ticker, exact: true });
 }
 
+/**
+ * Symulacja rynku odpalałaby alerty w trakcie asercji i zmieniała stan pod
+ * rękami — wynik testu byłby wtedy losowaniem. Wyłączamy ją przed załadowaniem
+ * strony; osobny test sprawdza, że włączona faktycznie działa.
+ */
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("pa-symulacja", "off");
+  });
+});
+
 /** Każdy błąd w konsoli traktujemy jak porażkę testu. */
 function pilnujKonsoli(page: Page): string[] {
   const bledy: string[] = [];
@@ -127,7 +138,7 @@ test.describe("Zmiana statusu alertu", () => {
     await expect(wiersz).toContainText("uzbrojony");
 
     // Zmiana jednej plakietki jest łatwa do przeoczenia — stąd potwierdzenie.
-    await expect(page.getByRole("status")).toContainText("uzbrojony");
+    await expect(page.getByRole("status", { name: "Powiadomienia" })).toContainText("uzbrojony");
 
     expect(bledy).toEqual([]);
   });
@@ -149,7 +160,7 @@ test.describe("Zmiana statusu alertu", () => {
     await okno.getByRole("button", { name: "Usuń" }).click();
 
     await expect(wiersz).toHaveCount(0);
-    await expect(page.getByRole("status")).toContainText("usunięty");
+    await expect(page.getByRole("status", { name: "Powiadomienia" })).toContainText("usunięty");
     expect(bledy).toEqual([]);
   });
 
@@ -177,5 +188,60 @@ test.describe("Zmiana statusu alertu", () => {
 
     await expect(page.getByRole("alertdialog")).toHaveCount(0);
     await expect(wiersz).toHaveCount(1);
+  });
+});
+
+test.describe("Symulacja rynku", () => {
+  // Reszta pliku wyłącza symulację; tutaj włączamy ją z powrotem.
+  // Skrypty startowe wykonują się w kolejności rejestracji, więc ten wygrywa.
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.removeItem("pa-symulacja"));
+  });
+
+  test("rusza sama i zmienia notowania na taśmie", async ({ page }) => {
+    await page.goto("/");
+
+    const cena = page.locator(".notowanie").first().locator(".notowanie__cena");
+    const przed = await cena.innerText();
+
+    await expect(cena).not.toHaveText(przed, { timeout: 12_000 });
+  });
+
+  test("można ją zatrzymać i uruchomić ponownie", async ({ page }) => {
+    await page.goto("/");
+
+    const przelacznik = page.getByRole("button", { name: /Symulacja/ });
+    await expect(przelacznik).toHaveText(/gra/);
+    await expect(przelacznik).toHaveAttribute("aria-pressed", "true");
+
+    await przelacznik.click();
+    await expect(przelacznik).toHaveText(/stoi/);
+    await expect(przelacznik).toHaveAttribute("aria-pressed", "false");
+
+    await przelacznik.click();
+    await expect(przelacznik).toHaveText(/gra/);
+  });
+
+  test("alert zakładany na cenę tuż obok rynku odpala się sam", async ({ page }) => {
+    await page.goto("/");
+
+    // Bierzemy bieżącą cenę CDR z taśmy i stawiamy próg poniżej niej —
+    // najbliższe notowanie musi go przebić.
+    const cenaCdr = await page
+      .locator(".notowanie")
+      .filter({ hasText: "CDR" })
+      .first()
+      .locator(".notowanie__cena")
+      .innerText();
+    const prog = (Number(cenaCdr) * 0.9).toFixed(2);
+
+    await page.getByPlaceholder("np. CDR").fill("CDR");
+    await page.getByPlaceholder("np. 180.00").fill(prog);
+    await page.getByRole("button", { name: "Załóż alert" }).click();
+
+    await expect(page.getByRole("status", { name: "Powiadomienia" })).toContainText(
+      "alert zadziałał",
+      { timeout: 15_000 },
+    );
   });
 });

@@ -15,5 +15,5 @@ withDefaults(defineProps<{ ile?: number }>(), { ile: 4 });
       <span class="szkielet__pasek" style="width: 30%" />
     </div>
   </div>
-  <span class="tylko-dla-czytnika" role="status">Ładuję alerty…</span>
+  <span class="tylko-dla-czytnika" role="status" aria-label="Stan ładowania">Ładuję alerty…</span>
 </template>

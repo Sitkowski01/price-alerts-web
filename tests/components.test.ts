@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils";
 
 import AlertForm from "../src/components/AlertForm.vue";
 import ErrorNote from "../src/components/ErrorNote.vue";
+import Sparkline from "../src/components/Sparkline.vue";
 import StatusBadge from "../src/components/StatusBadge.vue";
 
 describe("StatusBadge", () => {
@@ -116,5 +117,61 @@ describe("AlertForm", () => {
     const przycisk = komponent.find('button[type="submit"]');
     expect(przycisk.attributes("disabled")).toBeDefined();
     expect(przycisk.text()).toContain("Zapisuję");
+  });
+});
+
+describe("Sparkline", () => {
+  function zamontuj(wartosci: number[], prog: number | null = null) {
+    return mount(Sparkline, { props: { wartosci, prog, szerokosc: 100, wysokosc: 30 } });
+  }
+
+  it("rysuje tyle punktów, ile jest wartości", () => {
+    const komponent = zamontuj([1, 2, 3, 4]);
+
+    const punkty = komponent.find("polyline").attributes("points")!.trim().split(/\s+/);
+    expect(punkty).toHaveLength(4);
+  });
+
+  it("pierwszy punkt jest przy lewej krawędzi, ostatni przy prawej", () => {
+    const komponent = zamontuj([1, 2, 3]);
+
+    const punkty = komponent.find("polyline").attributes("points")!.trim().split(/\s+/);
+    expect(punkty[0].split(",")[0]).toBe("0.0");
+    expect(punkty[2].split(",")[0]).toBe("100.0");
+  });
+
+  it("seria rosnąca jest zielona, malejąca czerwona", () => {
+    expect(zamontuj([1, 5]).find("polyline").attributes("stroke")).toBe("var(--bull)");
+    expect(zamontuj([5, 1]).find("polyline").attributes("stroke")).toBe("var(--bear)");
+  });
+
+  it("płaska seria nie wywraca się na dzieleniu przez zero", () => {
+    // Rozpiętość zero dałaby NaN we współrzędnych i pusty wykres.
+    const komponent = zamontuj([10, 10, 10]);
+
+    const punkty = komponent.find("polyline").attributes("points")!;
+    expect(punkty).not.toContain("NaN");
+  });
+
+  it("pojedyncza wartość nie rysuje linii", () => {
+    expect(zamontuj([42]).find("polyline").exists()).toBe(false);
+  });
+
+  it("próg rysuje się przerywaną kreską tylko wtedy, gdy jest podany", () => {
+    expect(zamontuj([1, 2, 3]).find("line").exists()).toBe(false);
+
+    const zProgiem = zamontuj([1, 2, 3], 2.5);
+    const linia = zProgiem.find("line");
+    expect(linia.exists()).toBe(true);
+    expect(linia.attributes("stroke-dasharray")).toBe("3 3");
+  });
+
+  it("próg poza zakresem serii nadal mieści się na wykresie", () => {
+    // Skala musi objąć serię ORAZ próg, inaczej linia wyjeżdża poza ramkę.
+    const komponent = zamontuj([100, 101, 102], 150);
+
+    const y = Number(komponent.find("line").attributes("y1"));
+    expect(y).toBeGreaterThanOrEqual(0);
+    expect(y).toBeLessThanOrEqual(30);
   });
 });

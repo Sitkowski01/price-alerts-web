@@ -1,16 +1,17 @@
 <script setup lang="ts">
-defineProps<{ komunikat: string | null }>();
+import BaseIcon from "./BaseIcon.vue";
 
-// `defineEmits` deklaruje zdarzenia w górę — odpowiednik `onDismiss` w propsach Reacta,
-// tylko że rodzic podpina się przez `@zamknij`.
+defineProps<{ komunikat: string | null }>();
 const emit = defineEmits<{ zamknij: [] }>();
 </script>
 
 <template>
+  <!-- role="alert" ogłasza błąd czytnikowi ekranu bez zabierania fokusu -->
   <div v-if="komunikat" class="blad" role="alert">
+    <BaseIcon nazwa="warning" :rozmiar="17" />
     <span>{{ komunikat }}</span>
-    <button type="button" class="blad__zamknij" aria-label="Zamknij" @click="emit('zamknij')">
-      ×
+    <button type="button" class="blad__zamknij" aria-label="Zamknij komunikat" @click="emit('zamknij')">
+      <BaseIcon nazwa="close" :rozmiar="14" />
     </button>
   </div>
 </template>

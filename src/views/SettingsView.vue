@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 
+import BaseIcon from "../components/BaseIcon.vue";
 import { useSettingsStore } from "../stores/settings";
 
 const ustawienia = useSettingsStore();
@@ -9,9 +10,12 @@ const { tryb, baseUrl, apiKey, czyDemo } = storeToRefs(ustawienia);
 
 <template>
   <section>
-    <h2>Ustawienia</h2>
+    <div class="karta">
+      <div class="karta__naglowek">
+        <BaseIcon nazwa="settings" :rozmiar="17" />
+        <h2>Ustawienia</h2>
+      </div>
 
-    <div class="formularz">
       <fieldset class="pole">
         <legend>Źródło danych</legend>
 

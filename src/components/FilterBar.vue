@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 
+import BaseIcon from "./BaseIcon.vue";
 import type { AlertStatus, Direction } from "../api/types";
 
 const emit = defineEmits<{
@@ -39,7 +40,10 @@ function wyczysc(): void {
 
 <template>
   <div class="filtry">
-    <input v-model="ticker" type="search" placeholder="Filtruj po tickerze" aria-label="Ticker" />
+    <div class="filtry__szukaj">
+      <BaseIcon nazwa="search" :rozmiar="15" />
+      <input v-model="ticker" type="search" placeholder="Filtruj po tickerze" aria-label="Ticker" />
+    </div>
 
     <select v-model="status" aria-label="Status">
       <option value="">Każdy status</option>

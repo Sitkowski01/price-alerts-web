@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
+import BaseIcon from "./BaseIcon.vue";
 import type { AlertCreate, Direction } from "../api/types";
 
 const emit = defineEmits<{ zapisz: [dane: AlertCreate] }>();
@@ -59,7 +60,10 @@ function wyslij(): void {
 <template>
   <!-- `@submit.prevent` to `onSubmit` z wbudowanym `preventDefault()` -->
   <form class="formularz" @submit.prevent="wyslij">
-    <h2>Nowy alert</h2>
+    <div class="karta__naglowek">
+      <BaseIcon nazwa="bell" :rozmiar="17" />
+      <h2>Nowy alert</h2>
+    </div>
 
     <div class="pola">
       <label class="pole">
@@ -70,9 +74,11 @@ function wyslij(): void {
 
       <label class="pole">
         <span>Kierunek</span>
+        <!-- Krótkie etykiety, bo dłuższe ucinały się w wąskiej kolumnie.
+             Znaczenie i tak tłumaczy podgląd reguły poniżej. -->
         <select v-model="direction">
-          <option value="above">w górę — cena rośnie do progu</option>
-          <option value="below">w dół — cena spada do progu</option>
+          <option value="above">w górę</option>
+          <option value="below">w dół</option>
         </select>
       </label>
 
@@ -87,7 +93,10 @@ function wyslij(): void {
       </label>
     </div>
 
-    <p v-if="podglad" class="podglad">{{ podglad }}</p>
+    <p v-if="podglad" class="podglad">
+      <BaseIcon :nazwa="direction === 'above' ? 'trend-up' : 'trend-down'" :rozmiar="16" />
+      <span>{{ podglad }}</span>
+    </p>
 
     <ul v-if="dotkniete && bledy.length" class="bledy">
       <li v-for="b in bledy" :key="b">{{ b }}</li>

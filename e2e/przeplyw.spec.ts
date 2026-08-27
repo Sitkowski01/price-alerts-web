@@ -126,10 +126,13 @@ test.describe("Zmiana statusu alertu", () => {
     await wiersz.getByRole("button", { name: "Uzbrój" }).click();
     await expect(wiersz).toContainText("uzbrojony");
 
+    // Zmiana jednej plakietki jest łatwa do przeoczenia — stąd potwierdzenie.
+    await expect(page.getByRole("status")).toContainText("uzbrojony");
+
     expect(bledy).toEqual([]);
   });
 
-  test("usunięcie zdejmuje alert z listy", async ({ page }) => {
+  test("usunięcie wymaga potwierdzenia i pokazuje powiadomienie", async ({ page }) => {
     const bledy = pilnujKonsoli(page);
     await page.goto("/");
 
@@ -138,7 +141,41 @@ test.describe("Zmiana statusu alertu", () => {
 
     await wiersz.getByRole("button", { name: "Usuń" }).click();
 
+    // Akcja nieodwracalna nie może wykonać się od razu po kliknięciu.
+    const okno = page.getByRole("alertdialog");
+    await expect(okno).toBeVisible();
+    await expect(wiersz).toHaveCount(1);
+
+    await okno.getByRole("button", { name: "Usuń" }).click();
+
     await expect(wiersz).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("usunięty");
     expect(bledy).toEqual([]);
+  });
+
+  test("anulowanie w oknie potwierdzenia zostawia alert", async ({ page }) => {
+    const bledy = pilnujKonsoli(page);
+    await page.goto("/");
+
+    const wiersz = page.locator("table tbody tr").filter({ hasText: "PKN" });
+    await wiersz.getByRole("button", { name: "Usuń" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Anuluj" }).click();
+
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
+    await expect(wiersz).toHaveCount(1);
+    expect(bledy).toEqual([]);
+  });
+
+  test("klawisz Escape zamyka okno potwierdzenia", async ({ page }) => {
+    await page.goto("/");
+
+    const wiersz = page.locator("table tbody tr").filter({ hasText: "PKN" });
+    await wiersz.getByRole("button", { name: "Usuń" }).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
+    await expect(wiersz).toHaveCount(1);
   });
 });

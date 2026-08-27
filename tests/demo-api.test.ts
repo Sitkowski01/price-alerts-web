@@ -158,3 +158,54 @@ describe("Tryb demo odwzorowuje reguły backendu", () => {
     expect(strona.limit).toBe(200);
   });
 });
+
+describe("Tryb demo oddaje kopie, nie własny stan", () => {
+  // Regresja: gdy demo zwracało referencje do swoich obiektów, mutacja po stronie
+  // "serwera" omijała proxy reaktywności Vue i widok się nie odświeżał —
+  // przycisk „Wyłącz" działał, ale plakietka nie drgnęła.
+  it("dwa odczyty tego samego alertu to dwa różne obiekty", async () => {
+    const api = pusteApi();
+    const alert = await zalozAlert(api);
+
+    const pierwszy = await api.get(alert.id);
+    const drugi = await api.get(alert.id);
+
+    expect(pierwszy).toEqual(drugi);
+    expect(pierwszy).not.toBe(drugi);
+  });
+
+  it("zmiana statusu zwraca nowy obiekt, nie ten sam co poprzednio", async () => {
+    const api = pusteApi();
+    const alert = await zalozAlert(api);
+    const przed = await api.get(alert.id);
+
+    const po = await api.update(alert.id, { status: "disabled" });
+
+    expect(po).not.toBe(przed);
+    expect(po.status).toBe("disabled");
+  });
+
+  it("mutacja zwróconego obiektu nie rusza stanu serwisu", async () => {
+    const api = pusteApi();
+    const alert = await zalozAlert(api);
+
+    const kopia = await api.get(alert.id);
+    kopia.status = "disabled";
+    kopia.ticker = "PODMIENIONY";
+
+    const swiezy = await api.get(alert.id);
+    expect(swiezy.status).toBe("armed");
+    expect(swiezy.ticker).toBe("CDR");
+  });
+
+  it("pozycje listy też są kopiami", async () => {
+    const api = pusteApi();
+    await zalozAlert(api);
+
+    const strona = await api.list({});
+    strona.items[0].status = "disabled";
+
+    const ponownie = await api.list({});
+    expect(ponownie.items[0].status).toBe("armed");
+  });
+});

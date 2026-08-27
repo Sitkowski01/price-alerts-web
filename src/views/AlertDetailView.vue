@@ -123,7 +123,8 @@ function czas(iso: string): string {
         opis="Wpis pojawi się tutaj, gdy notowanie przebije próg."
         ikona="pulse"
       />
-      <table v-else class="tabela">
+      <div v-else class="tabela-oprawa">
+        <table class="tabela">
         <thead>
           <tr>
             <th>Cena</th>
@@ -137,8 +138,9 @@ function czas(iso: string): string {
             <td>{{ czas(wpis.quote_ts) }}</td>
             <td>{{ czas(wpis.created_at) }}</td>
           </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
       <ConfirmDialog
         :otwarte="pytamyOUsuniecie"
         tytul="Usunąć alert?"

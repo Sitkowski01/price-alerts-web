@@ -13,7 +13,7 @@ const { pozycje } = storeToRefs(store);
     aria-live="polite" ogłasza treść czytnikowi ekranu, ale NIE zabiera fokusu —
     inaczej toast przerywałby to, co użytkownik właśnie robi.
   -->
-  <div class="toasty" role="status" aria-live="polite">
+  <div class="toasty" role="status" aria-live="polite" aria-label="Powiadomienia">
     <TransitionGroup name="toast">
       <div v-for="toast in pozycje" :key="toast.id" class="toast" :class="`toast--${toast.rodzaj}`">
         <BaseIcon :nazwa="toast.rodzaj === 'sukces' ? 'check' : 'warning'" :rozmiar="16" />

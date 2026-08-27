@@ -268,7 +268,7 @@ input:focus, select:focus {
   border: 1px solid var(--terminal-border); background: var(--terminal-panel);
   box-shadow: var(--cien-panel);
 }
-.tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 620px; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 760px; }
 .tabela th {
   text-align: left; padding: 11px 14px;
   font-family: var(--mono); font-size: 10.5px; font-weight: 500;
@@ -424,3 +424,58 @@ code { background: var(--terminal-bg); border: 1px solid var(--terminal-border);
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── taśma notowań ── */
+.tasma {
+  display: flex; align-items: stretch; gap: 0;
+  margin-top: 20px; border-radius: var(--r);
+  background: var(--terminal-panel); border: 1px solid var(--terminal-border);
+  overflow: hidden;
+}
+.tasma__sterowanie { display: flex; align-items: center; padding: 0 12px; border-right: 1px solid var(--terminal-border); background: var(--terminal-bg); flex-shrink: 0; }
+.tasma__przycisk {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 4px; background: none; border: 0; cursor: pointer;
+  font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--terminal-text-cichy); white-space: nowrap;
+  transition: color var(--ruch);
+}
+.tasma__przycisk:hover { color: var(--terminal-highlight); }
+.tasma__dioda { width: 7px; height: 7px; border-radius: 50%; background: var(--terminal-border-mocna); transition: background var(--ruch), box-shadow var(--ruch); }
+.tasma__przycisk--gra { color: var(--bull); }
+.tasma__przycisk--gra .tasma__dioda { background: var(--bull); box-shadow: var(--neon-mocny); animation: puls 2s ease-in-out infinite; }
+@keyframes puls { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.tasma__okno { flex: 1; overflow: hidden; position: relative; min-width: 0; }
+/* Wygaszenie na krawędziach — taśma nie urywa się ostro */
+.tasma__okno::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, var(--terminal-panel) 0%, transparent 5%, transparent 95%, var(--terminal-panel) 100%);
+}
+.tasma__ruch { display: flex; width: max-content; animation: przewijanie 42s linear infinite; }
+.tasma__ruch--stoi { animation-play-state: paused; }
+.tasma__okno:hover .tasma__ruch { animation-play-state: paused; }
+@keyframes przewijanie { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.notowanie {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 18px; border-right: 1px solid var(--terminal-border);
+  font-family: var(--mono); font-size: 12px; white-space: nowrap;
+}
+.notowanie__ticker { color: var(--terminal-highlight); font-weight: 600; }
+.notowanie__cena { color: var(--terminal-text); font-variant-numeric: tabular-nums; }
+.notowanie__zmiana { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; font-size: 11px; }
+
+.iskra { display: block; flex-shrink: 0; color: var(--terminal-text-cichy); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tasma__ruch { animation: none; }
+  .tasma__przycisk--gra .tasma__dioda { animation: none; }
+}
+
+/* ── kolumna rynkowa w tabeli ── */
+.rynek { display: flex; align-items: center; gap: 10px; }
+.rynek__liczby { display: flex; flex-direction: column; line-height: 1.3; }
+.rynek__cena { font-family: var(--mono); font-size: 12.5px; color: var(--terminal-highlight); font-variant-numeric: tabular-nums; }
+.rynek__dystans { font-family: var(--mono); font-size: 10px; color: var(--terminal-text-cichy); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rynek__dystans--tuz { color: var(--bursztyn); }

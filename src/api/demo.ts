@@ -32,6 +32,19 @@ export class DemoAlertsApi implements AlertsApi {
   // odrzucona obietnica, a nie synchroniczny wyjątek. Klient API musi zachowywać
   // się tak samo niezależnie od implementacji.
 
+  /**
+   * Zwracamy KOPIE, nigdy własnych obiektów.
+   *
+   * Klient HTTP zawsze oddaje świeży obiekt sparsowany z JSON-a. Gdy tryb demo
+   * oddawał referencje do swojego stanu, mutacja po stronie "serwera"
+   * (`alert.status = ...`) dotykała surowego obiektu z pominięciem proxy Vue,
+   * więc widok się nie odświeżał — przycisk działał, ale plakietka nie drgnęła.
+   * Kopia sprawia, że obie implementacje zachowują się tak samo.
+   */
+  private kopia<T>(wartosc: T): T {
+    return structuredClone(wartosc);
+  }
+
   /** Sztuczne opóźnienie — bez niego stany ładowania nigdy nie byłyby widoczne. */
   private async zwloka<T>(wynik: T): Promise<T> {
     await new Promise((r) => setTimeout(r, 180));
@@ -116,12 +129,12 @@ export class DemoAlertsApi implements AlertsApi {
       total: wynik.length,
       limit,
       offset,
-      items: wynik.slice(offset, offset + limit),
+      items: this.kopia(wynik.slice(offset, offset + limit)),
     });
   }
 
   async get(id: string): Promise<Alert> {
-    return this.zwloka(this.znajdz(id));
+    return this.zwloka(this.kopia(this.znajdz(id)));
   }
 
   async create(data: AlertCreate): Promise<Alert> {
@@ -140,7 +153,7 @@ export class DemoAlertsApi implements AlertsApi {
       updated_at: znacznik,
     };
     this.alerty.push(alert);
-    return this.zwloka(alert);
+    return this.zwloka(this.kopia(alert));
   }
 
   async update(id: string, data: AlertUpdate): Promise<Alert> {
@@ -149,7 +162,7 @@ export class DemoAlertsApi implements AlertsApi {
     if (data.status !== undefined) alert.status = data.status;
     if (data.note !== undefined) alert.note = data.note?.trim() || null;
     alert.updated_at = this.teraz();
-    return this.zwloka(alert);
+    return this.zwloka(this.kopia(alert));
   }
 
   async remove(id: string): Promise<void> {
@@ -163,7 +176,11 @@ export class DemoAlertsApi implements AlertsApi {
   async triggers(id: string): Promise<Trigger[]> {
     this.znajdz(id);
     return this.zwloka(
-      this.uruchomienia.filter((t) => t.alert_id === id).sort((a, b) => (a.created_at < b.created_at ? 1 : -1)),
+      this.kopia(
+        this.uruchomienia
+          .filter((t) => t.alert_id === id)
+          .sort((a, b) => (a.created_at < b.created_at ? 1 : -1)),
+      ),
     );
   }
 
@@ -205,7 +222,7 @@ export class DemoAlertsApi implements AlertsApi {
       ticker,
       price: cena.toFixed(6),
       evaluated: kandydaci.length,
-      triggered: uruchomione,
+      triggered: this.kopia(uruchomione),
     });
   }
 }

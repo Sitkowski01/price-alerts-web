@@ -109,3 +109,36 @@ test.describe("Przejście po aplikacji w trybie demo", () => {
     await expect(page.getByRole("heading", { name: "404" })).toBeVisible();
   });
 });
+
+test.describe("Zmiana statusu alertu", () => {
+  test("wyłączenie i ponowne uzbrojenie widać od razu na liście", async ({ page }) => {
+    const bledy = pilnujKonsoli(page);
+    await page.goto("/");
+
+    const wiersz = page.locator("table tbody tr").filter({ hasText: "CDR" });
+    // Wersaliki na plakietce robi CSS; w DOM tekst jest małymi literami.
+    await expect(wiersz).toContainText("uzbrojony");
+
+    await wiersz.getByRole("button", { name: "Wyłącz" }).click();
+    await expect(wiersz).toContainText("wyłączony");
+
+    // Przycisk zamienia się na przeciwny — inaczej nie dałoby się cofnąć.
+    await wiersz.getByRole("button", { name: "Uzbrój" }).click();
+    await expect(wiersz).toContainText("uzbrojony");
+
+    expect(bledy).toEqual([]);
+  });
+
+  test("usunięcie zdejmuje alert z listy", async ({ page }) => {
+    const bledy = pilnujKonsoli(page);
+    await page.goto("/");
+
+    const wiersz = page.locator("table tbody tr").filter({ hasText: "PKN" });
+    await expect(wiersz).toBeVisible();
+
+    await wiersz.getByRole("button", { name: "Usuń" }).click();
+
+    await expect(wiersz).toHaveCount(0);
+    expect(bledy).toEqual([]);
+  });
+});

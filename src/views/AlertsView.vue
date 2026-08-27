@@ -133,6 +133,7 @@ function sformatuj(kwota: string): string {
             <td><StatusBadge :status="alert.status" /></td>
             <td class="notatka">{{ alert.note ?? "—" }}</td>
             <td class="do-prawej">
+              <div class="akcje-wiersza">
               <button type="button" class="przycisk przycisk--maly" @click="przelacz(alert)">
                 <BaseIcon :nazwa="alert.status === 'armed' ? 'pause' : 'check'" :rozmiar="14" />
                 {{ alert.status === "armed" ? "Wyłącz" : "Uzbrój" }}
@@ -145,6 +146,7 @@ function sformatuj(kwota: string): string {
                 <BaseIcon nazwa="trash" :rozmiar="14" />
                 Usuń
               </button>
+              </div>
             </td>
           </tr>
         </tbody>

@@ -34,11 +34,15 @@ nie wie, z którą rozmawia. To jest cały powód, dla którego ten podział ist
 
 ## Interfejs
 
-Paleta i typografia przeniesione z mojego portfolio [sitekmikolaj.pl](https://sitekmikolaj.pl)
-— te same tokeny (`#020617` tło, `#0f172a` powierzchnie, `#334155` obwódki), ten sam
-gradient sygnaturowy **cyan → indygo** i ta sama radialna poświata indygo w tle.
-Wszystkie kolory są zdefiniowane jako zmienne CSS w jednym miejscu; w komponentach
-nie ma ani jednego surowego hexa.
+Motyw przeniesiony z mojego portfolio [sitekmikolaj.pl](https://sitekmikolaj.pl) —
+**terminal giełdowy**: prawie czarne tło `#030712`, panele `#0f172a`, zielony
+`bull #10b981` jako główny akcent i czerwony `bear #ef4444`. Do tego siatka w tle,
+neonowa poświata zieleni i JetBrains Mono na liczbach, tickerach i etykietach.
+Nazwy tokenów są celowo takie same jak w portfolio (`--terminal-bg`, `--bull`, `--bear`),
+a wszystkie kolory siedzą w jednym miejscu — w komponentach nie ma ani jednego surowego hexa.
+
+Kolory nie są tu dekoracją: **wzrost to zielony, spadek czerwony**, więc kierunek alertu
+czyta się z wiersza bez czytania liczby.
 
 Decyzje interfejsowe, które warto wskazać:
 

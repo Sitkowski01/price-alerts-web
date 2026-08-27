@@ -2,8 +2,12 @@
 import { onMounted, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 
+import BaseIcon from "../components/BaseIcon.vue";
+import ConfirmDialog from "../components/ConfirmDialog.vue";
+import EmptyState from "../components/EmptyState.vue";
 import ErrorNote from "../components/ErrorNote.vue";
 import StatusBadge from "../components/StatusBadge.vue";
+import { useToastsStore } from "../stores/toasts";
 import { useApi } from "../api";
 import { ApiError } from "../api/types";
 import type { Alert, Trigger } from "../api/types";
@@ -14,6 +18,8 @@ const props = defineProps<{ id: string }>();
 
 const router = useRouter();
 const store = useAlertsStore();
+const toasty = useToastsStore();
+const pytamyOUsuniecie = ref(false);
 
 const alert = ref<Alert | null>(null);
 const historia = ref<Trigger[]>([]);
@@ -41,12 +47,21 @@ onMounted(wczytaj);
 
 async function uzbroj(): Promise<void> {
   if (!alert.value) return;
-  if (await store.uzbrojPonownie(alert.value.id)) await wczytaj();
+  const nazwa = alert.value.ticker;
+  if (await store.uzbrojPonownie(alert.value.id)) {
+    toasty.pokaz(nazwa + " — alert uzbrojony.");
+    await wczytaj();
+  }
 }
 
 async function usun(): Promise<void> {
+  pytamyOUsuniecie.value = false;
   if (!alert.value) return;
-  if (await store.usun(alert.value.id)) await router.push({ name: "alerty" });
+  const nazwa = alert.value.ticker;
+  if (await store.usun(alert.value.id)) {
+    toasty.pokaz("Alert dla " + nazwa + " usunięty.");
+    await router.push({ name: "alerty" });
+  }
 }
 
 function czas(iso: string): string {
@@ -56,7 +71,9 @@ function czas(iso: string): string {
 
 <template>
   <section>
-    <RouterLink :to="{ name: 'alerty' }" class="powrot">← Wszystkie alerty</RouterLink>
+    <RouterLink :to="{ name: 'alerty' }" class="powrot">
+      <BaseIcon nazwa="arrow-left" :rozmiar="15" /> Wszystkie alerty
+    </RouterLink>
 
     <p v-if="ladowanie" class="stan">Ładuję…</p>
     <ErrorNote :komunikat="blad" @zamknij="blad = null" />
@@ -65,9 +82,15 @@ function czas(iso: string): string {
       <header class="szczegoly__naglowek">
         <div>
           <h2>{{ alert.ticker }}</h2>
-          <p class="regula">
-            Powiadom, gdy cena {{ alert.direction === "above" ? "wejdzie na" : "spadnie do" }}
-            <strong>{{ Number(alert.threshold).toFixed(2) }}</strong>
+          <p class="regula" :class="'kierunek--' + alert.direction">
+            <BaseIcon
+              :nazwa="alert.direction === 'above' ? 'trend-up' : 'trend-down'"
+              :rozmiar="16"
+            />
+            <span>
+              Powiadom, gdy cena {{ alert.direction === "above" ? "wejdzie na" : "spadnie do" }}
+              <strong>{{ Number(alert.threshold).toFixed(2) }}</strong>
+            </span>
           </p>
         </div>
         <StatusBadge :status="alert.status" />
@@ -86,15 +109,20 @@ function czas(iso: string): string {
           class="przycisk przycisk--glowny"
           @click="uzbroj"
         >
-          Uzbrój ponownie
+          <BaseIcon nazwa="check" :rozmiar="15" /> Uzbrój ponownie
         </button>
-        <button type="button" class="przycisk przycisk--grozny" @click="usun">Usuń alert</button>
+        <button type="button" class="przycisk przycisk--grozny" @click="pytamyOUsuniecie = true">
+          <BaseIcon nazwa="trash" :rozmiar="15" /> Usuń alert
+        </button>
       </div>
 
       <h3>Historia uruchomień</h3>
-      <p v-if="historia.length === 0" class="stan">
-        Ten alert jeszcze nie zadziałał.
-      </p>
+      <EmptyState
+        v-if="historia.length === 0"
+        tytul="Ten alert jeszcze nie zadziałał"
+        opis="Wpis pojawi się tutaj, gdy notowanie przebije próg."
+        ikona="pulse"
+      />
       <table v-else class="tabela">
         <thead>
           <tr>
@@ -111,6 +139,13 @@ function czas(iso: string): string {
           </tr>
         </tbody>
       </table>
+      <ConfirmDialog
+        :otwarte="pytamyOUsuniecie"
+        tytul="Usunąć alert?"
+        :tresc="'Alert dla ' + alert.ticker + ' zniknie razem z całą historią uruchomień. Tego nie da się cofnąć.'"
+        @potwierdz="usun"
+        @anuluj="pytamyOUsuniecie = false"
+      />
     </template>
   </section>
 </template>

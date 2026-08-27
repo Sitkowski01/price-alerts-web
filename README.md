@@ -32,6 +32,33 @@ pozwala wpiąć się w prawdziwe API bez przebudowy aplikacji.
 Obie implementacje realizują jeden interfejs `AlertsApi` (`src/api/types.ts`), więc store
 nie wie, z którą rozmawia. To jest cały powód, dla którego ten podział istnieje.
 
+## Interfejs
+
+Paleta i typografia przeniesione z mojego portfolio [sitekmikolaj.pl](https://sitekmikolaj.pl)
+— te same tokeny (`#020617` tło, `#0f172a` powierzchnie, `#334155` obwódki), ten sam
+gradient sygnaturowy **cyan → indygo** i ta sama radialna poświata indygo w tle.
+Wszystkie kolory są zdefiniowane jako zmienne CSS w jednym miejscu; w komponentach
+nie ma ani jednego surowego hexa.
+
+Decyzje interfejsowe, które warto wskazać:
+
+- **Ikony wektorowe, zero emoji** (`src/components/ikony.ts`) — emoji renderują się inaczej
+  na każdym systemie i nie da się ich dopasować do tokenów kolorów.
+- **Plakietka statusu ma kropkę i tekst**, nie sam kolor — informacja nie może zależeć
+  wyłącznie od barwy.
+- **Szkielet zamiast napisu „Ładuję…"** — rezerwuje wysokość wierszy, więc lista nie
+  podskakuje, gdy dane dojdą.
+- **Usuwanie wymaga potwierdzenia** w oknie modalnym: fokus ląduje na „Anuluj",
+  Escape zamyka, kliknięcie w tło też.
+- **Toasty potwierdzają akcje** przez `aria-live="polite"` — ogłaszają się czytnikowi
+  ekranu, ale nie zabierają fokusu. Znikają po 4 s.
+- **Dwa stany puste** zamiast jednego: inny komunikat, gdy filtry nic nie znalazły,
+  a inny gdy alertów nie ma w ogóle.
+- **Liczby w kolumnach tabularne** (`font-variant-numeric: tabular-nums`) — ceny nie
+  skaczą przy zmianie cyfr.
+- **Fokus nigdy nie jest usuwany**, wciśnięcie przycisku zmienia skalę, nie rozmiar,
+  a cały ruch respektuje `prefers-reduced-motion`.
+
 ## Uruchomienie
 
 ```bash
@@ -65,7 +92,7 @@ npm run typecheck  # vue-tsc bez emitowania
 | `tests/alerts-store.test.ts` | store Pinii przez prawdziwą ścieżkę store → klient → reguły: pobieranie, gettery, **powrót na pierwszą stronę przy zmianie filtra**, aktualizacja w miejscu bez przeładowania listy, błąd sieci zostawiający czytelny komunikat |
 | `tests/components.test.ts` | komponenty przez `@vue/test-utils`: walidacja formularza, emitowane zdarzenia, podgląd reguły reagujący na kierunek, czyszczenie pól po zapisie, blokada przycisku w trakcie zapisu |
 
-Do tego **9 testów w prawdziwej przeglądarce** (Playwright, `npm run test:e2e`):
+Do tego **11 testów w prawdziwej przeglądarce** (Playwright, `npm run test:e2e`):
 
 ```bash
 npx playwright install chromium

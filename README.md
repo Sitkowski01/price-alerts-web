@@ -53,7 +53,7 @@ Co z tego wynika:
   przez `POST /v1/quotes`. Zakładasz alert i po chwili widzisz powiadomienie,
   bez klikania czegokolwiek.
 
-Dwie decyzje, o które warto zapytać:
+Dwie decyzje, które za tym stoją:
 
 - **Notowania lecą tylko dla instrumentów z uzbrojonym alertem.** Reszta rusza się
   wyłącznie na wykresie. Bez tego symulator generowałby dziesięć zapytań na tik,
@@ -96,7 +96,7 @@ a wszystkie kolory siedzą w jednym miejscu — w komponentach nie ma ani jedneg
 Kolory nie są tu dekoracją: **wzrost to zielony, spadek czerwony**, więc kierunek alertu
 czyta się z wiersza bez czytania liczby.
 
-Decyzje interfejsowe, o które warto zapytać:
+Decyzje interfejsowe:
 
 - **Ikony wektorowe, zero emoji** (`src/components/ikony.ts`) — emoji renderują się inaczej
   na każdym systemie i nie da się ich dopasować do tokenów kolorów.
@@ -184,7 +184,7 @@ src/
   router/         trasy z leniwym ładowaniem widoków
 ```
 
-## Decyzje, o które warto zapytać
+## Decyzje projektowe
 
 - **Kwoty jako `string`, nie `number`.** Backend trzyma je w `numeric`, żeby nie gubić
   groszy na zaokrągleniu binarnym. Front ich nie parsuje bez potrzeby — formatuje do

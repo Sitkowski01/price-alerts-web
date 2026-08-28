@@ -9,6 +9,14 @@ w FastAPI z PostgreSQL, skonteneryzowanym i uruchomionym na Kubernetesie.
 
 **Vue 3 · Composition API · Pinia · Vue Router · TypeScript · Vitest**
 
+![Lista alertów w trybie demo](docs/lista-alertow.png)
+
+Widok główny. Na górze taśma notowań, pod nią podział alertów na uzbrojone i już
+uruchomione, dalej formularz i tabela. Najważniejsza jest kolumna **Rynek**: wykres
+iskrowy z przerywaną linią progu i procentem, jakiego brakuje do jego przebicia.
+`PKN` ma 3,9% do progu, `CDR` 2,8% — widać, który alert strzeli następny, bez czytania
+ani jednej liczby z pozostałych kolumn. Statusy niosą kropkę i tekst, nie sam kolor.
+
 ## Co potrafi
 
 - **Lista alertów** z filtrami (ticker, status, kierunek) i stronicowaniem po stronie serwera
@@ -18,6 +26,13 @@ w FastAPI z PostgreSQL, skonteneryzowanym i uruchomionym na Kubernetesie.
 - **Szczegóły alertu** z historią uruchomień, ponownym uzbrojeniem i usunięciem
 - **Dwa źródła danych** — prawdziwe API albo tryb demo w pamięci przeglądarki
 - Obsługa błędów rozróżniająca brak klucza (401) od niedostępnego backendu
+
+![Ręczna wysyłka notowania](docs/wyslij-notowanie.png)
+
+Formularz notowania sam tłumaczy regułę, którą egzekwuje backend: notowanie liczy się
+wyłącznie względem alertów **uzbrojonych**, próg jest domknięty, a alert po zadziałaniu
+milczy do ponownego uzbrojenia. Te same trzy zdania są w testach domenowych API —
+interfejs ich nie wymyśla, tylko powtarza.
 
 ## Symulowany rynek
 
@@ -63,6 +78,12 @@ pozwala wpiąć się w prawdziwe API bez przebudowy aplikacji.
 Obie implementacje realizują jeden interfejs `AlertsApi` (`src/api/types.ts`), więc store
 nie wie, z którą rozmawia. To jest cały powód, dla którego ten podział istnieje.
 
+![Przełącznik źródła danych w Ustawieniach](docs/ustawienia.png)
+
+Adres API i klucz odsłaniają się dopiero po wybraniu prawdziwego backendu i lądują
+w `localStorage` tej przeglądarki. Klucz nie idzie nigdzie poza nagłówek `X-API-Key`
+w zapytaniach do API — nie ma tu żadnej telemetrii ani zewnętrznego zapisu.
+
 ## Interfejs
 
 Motyw przeniesiony z mojego portfolio [sitekmikolaj.pl](https://sitekmikolaj.pl) —
@@ -75,7 +96,7 @@ a wszystkie kolory siedzą w jednym miejscu — w komponentach nie ma ani jedneg
 Kolory nie są tu dekoracją: **wzrost to zielony, spadek czerwony**, więc kierunek alertu
 czyta się z wiersza bez czytania liczby.
 
-Decyzje interfejsowe, które warto wskazać:
+Decyzje interfejsowe, o które warto zapytać:
 
 - **Ikony wektorowe, zero emoji** (`src/components/ikony.ts`) — emoji renderują się inaczej
   na każdym systemie i nie da się ich dopasować do tokenów kolorów.
@@ -163,7 +184,7 @@ src/
   router/         trasy z leniwym ładowaniem widoków
 ```
 
-## Decyzje, o których warto wiedzieć
+## Decyzje, o które warto zapytać
 
 - **Kwoty jako `string`, nie `number`.** Backend trzyma je w `numeric`, żeby nie gubić
   groszy na zaokrągleniu binarnym. Front ich nie parsuje bez potrzeby — formatuje do
@@ -180,12 +201,15 @@ src/
 
 ## Vue dla kogoś, kto pisze w Reakcie
 
-Piszę na co dzień w React i React Native, a w pracy magisterskiej w Angularze.
-Przy tym projekcie zebrałem różnice, które w praktyce sprawiają najwięcej kłopotu —
-`ref` kontra `reactive`, `computed` bez tablicy zależności, `watch` kontra `watchEffect`,
-`v-model` pod spodem, Pinia obok zustanda:
+Na co dzień piszę w React i React Native, w pracy magisterskiej w Angularze. Miejsca,
+w których Vue faktycznie **różni się** od Reacta, a nie tylko wygląda inaczej, spisałem
+w osobnym dokumencie: `ref` kontra `reactive`, `computed` bez tablicy zależności,
+`watch` kontra `watchEffect`, `v-model` rozłożony na części, Pinia obok zustanda.
 
 👉 [**VUE-DLA-REACTOWCA.md**](VUE-DLA-REACTOWCA.md)
+
+Każda różnica z przykładem z tego projektu — to są dokładnie te pułapki, na których
+wykłada się ktoś przesiadający się z Reacta.
 
 ## CI
 
